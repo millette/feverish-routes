@@ -22,7 +22,7 @@ const after = (options, server, next) => {
   server.auth.strategy('session', 'cookie', true, {
     password: 'password-should-be-32-characters',
     cookie: 'sid-example',
-    redirectTo: '/testing',
+    redirectTo: '/login',
     isSecure: false,
     validateFunc: function (request, session, callback) {
       cache.get(session.sid, (err, cached) => {
@@ -34,14 +34,21 @@ const after = (options, server, next) => {
   })
 
   server.route({
+    method: 'POST',
+    path: '/logout',
+    handler: (request, reply) => {
+      request.cookieAuth.clear();
+      return reply.redirect('/');
+    }
+  })
+
+  server.route({
     method: 'GET',
     path: '/',
     handler: {
       view: {
         template: 'bienvenue',
-        context: {
-          active: 'accueil'
-        }
+        context: { active: 'accueil' }
       }
     }
   })
@@ -126,7 +133,7 @@ const after = (options, server, next) => {
 
   server.route({
     method: ['GET', 'POST'],
-    path: '/testing',
+    path: '/login',
     config: {
       handler: login,
       auth: { mode: 'try' },
