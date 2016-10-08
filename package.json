@@ -1,0 +1,24 @@
+{
+  "name": "feverish-routes",
+  "version": "0.0.0",
+  "description": "Feverish routes",
+  "main": "index.js",
+  "scripts": {
+    "lint": "standard",
+    "test": "standard"
+  },
+  "devDependencies": {
+    "standard": "^8.3.0"
+  },
+  "dependencies": {
+    "inert": "^4.0.2",
+    "vision": "^4.1.0",
+    "visionary": "^6.0.2"
+  },
+  "author": {
+    "name": "Robin Millette",
+    "email": "robin@millette.info",
+    "url": "http://robin.millette.info"
+  },
+  "license": "AGPL-3.0"
+}
