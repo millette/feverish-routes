@@ -1,5 +1,7 @@
 'use strict'
 
+const pkg = require('./package.json')
+
 const after = (options, server, next) => {
   server.route({
     method: 'GET',
@@ -78,8 +80,6 @@ const after = (options, server, next) => {
 
   next()
 }
-
-const pkg = require('./package.json')
 
 exports.register = (server, options, next) => {
   server.dependency(Object.keys(pkg.dependencies), after.bind(null, options))
