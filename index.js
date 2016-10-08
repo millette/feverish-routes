@@ -1,12 +1,20 @@
 'use strict'
 
 // npm
-require ('dotenv-safe').load()
+require ('dotenv-safe').load({ silent: true, sample: 'node_modules/feverish-routes/.env.example' })
 
 const pkg = require('./package.json')
 
 const after = (options, server, next) => {
-  console.log('OPTIONS:', options)
+  console.log('OPTIONS2:', options)
+
+  server.views({
+    engines: { html: require('lodash-vision') },
+    path: 'templates',
+    partialsPath: 'templates/partials',
+    isCached: process.env.TEMPLATE_CACHE.toLowerCase() === 'true'
+  })
+
   server.route({
     method: 'GET',
     path: '/',
@@ -86,7 +94,8 @@ const after = (options, server, next) => {
 }
 
 exports.register = (server, options, next) => {
-  server.dependency(Object.keys(pkg.dependencies), after.bind(null, options))
+  console.log('OPTIONS:', options)
+  server.dependency(Object.keys(pkg.dependencies).filter((x) => pkg.notHapiDeps.indexOf(x) === -1), after.bind(null, options))
   next()
 }
 

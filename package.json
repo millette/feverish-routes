@@ -13,9 +13,11 @@
   "dependencies": {
     "dotenv-safe": "^2.3.2",
     "inert": "^4.0.2",
+    "lodash-vision": "file:///home/millette/lodash-vision",
     "vision": "^4.1.0",
     "visionary": "^6.0.2"
   },
+  "notHapiDeps": ["dotenv-safe", "lodash-vision"],
   "author": {
     "name": "Robin Millette",
     "email": "robin@millette.info",
