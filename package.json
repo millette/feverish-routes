@@ -11,6 +11,7 @@
     "standard": "^8.3.0"
   },
   "dependencies": {
+    "dotenv-safe": "^2.3.2",
     "inert": "^4.0.2",
     "vision": "^4.1.0",
     "visionary": "^6.0.2"

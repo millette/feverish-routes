@@ -1,8 +1,12 @@
 'use strict'
 
+// npm
+require ('dotenv-safe').load()
+
 const pkg = require('./package.json')
 
 const after = (options, server, next) => {
+  console.log('OPTIONS:', options)
   server.route({
     method: 'GET',
     path: '/',
