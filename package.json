@@ -12,11 +12,21 @@
   },
   "dependencies": {
     "dotenv-safe": "^2.3.2",
+    "hapi": "^15.1.1",
+    "hapi-auth-cookie": "^6.1.1",
+    "hapi-context-credentials": "^2.0.0",
     "inert": "^4.0.2",
     "lodash-vision": "file:///home/millette/lodash-vision",
     "vision": "^4.1.0"
   },
-  "notHapiDeps": ["dotenv-safe", "lodash-vision"],
+  "notHapiPlugins": [
+    "dotenv-safe",
+    "lodash-vision",
+    "hapi"
+  ],
+  "keywords": [
+    "feverish"
+  ],
   "author": {
     "name": "Robin Millette",
     "email": "robin@millette.info",
