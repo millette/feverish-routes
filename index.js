@@ -6,9 +6,13 @@ require('dotenv-safe').load({
   sample: 'node_modules/feverish-routes/.env.example'
 })
 
+const db = require('nano')('http://localhost:5985/')
 const pkg = require('./package.json')
 
 const after = (options, server, next) => {
+  const cache = server.cache({ segment: 'sessions', expiresIn: 3 * 24 * 60 * 60 * 1000 })
+  server.app.cache = cache
+
   server.views({
     engines: { html: require('lodash-vision') },
     path: 'templates',
@@ -16,20 +20,22 @@ const after = (options, server, next) => {
     isCached: process.env.TEMPLATE_CACHE.toLowerCase() === 'true'
   })
 
-  const cache = server.cache({ segment: 'sessions', expiresIn: 3 * 24 * 60 * 60 * 1000 })
-  server.app.cache = cache
-
   server.auth.strategy('session', 'cookie', true, {
     password: 'password-should-be-32-characters',
     cookie: 'sid-example',
     redirectTo: '/login',
     isSecure: false,
-    validateFunc: function (request, session, callback) {
-      cache.get(session.sid, (err, cached) => {
-        if (err) { return callback(err, false) }
-        if (cached) { return callback(null, true, cached.account) }
-        return callback(null, false)
-      })
+    validateFunc: (request, session, callback) => {
+      console.log('PAYLOAD:', request.payload)
+      console.log('AUTH:', request.auth)
+      console.log('SES:', session)
+      cache.get(
+        session.sid, (err, cached) => err
+          ? callback(err, false)
+          : cached
+            ? callback(null, true, cached.account)
+            : callback(null, false)
+      )
     }
   })
 
@@ -37,8 +43,8 @@ const after = (options, server, next) => {
     method: 'POST',
     path: '/logout',
     handler: (request, reply) => {
-      request.cookieAuth.clear();
-      return reply.redirect('/');
+      request.cookieAuth.clear()
+      return reply.redirect('/')
     }
   })
 
@@ -113,9 +119,13 @@ const after = (options, server, next) => {
     if (request.method === 'post') {
       if (request.payload.username && request.payload.password) {
         account = users[request.payload.username]
-        if (!account || account.password !== request.payload.password) {
-          message = 'Invalid username or password'
-        }
+        console.log('login', account)
+
+        db.auth(request.payload.username, request.payload.password, (err, a, b, c) => {
+          console.log('auth', err, a, b, c)
+        })
+
+        if (!account || account.password !== request.payload.password) { message = 'Invalid username or password' }
       } else {
         message = 'Missing username or password'
       }
@@ -125,7 +135,7 @@ const after = (options, server, next) => {
 
     const sid = String(++uuid)
     request.server.app.cache.set(sid, { account: account }, 0, (err) => {
-      if (err) { reply(err) }
+      if (err) { return reply(err) }
       request.cookieAuth.set({ sid: sid })
       return reply.redirect('/')
     })
