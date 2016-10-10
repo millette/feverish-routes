@@ -26,9 +26,6 @@ const after = (options, server, next) => {
     redirectTo: '/login',
     isSecure: false,
     validateFunc: (request, session, callback) => {
-      console.log('PAYLOAD:', request.payload)
-      console.log('AUTH:', request.auth)
-      console.log('SES:', session)
       cache.get(
         session.sid, (err, cached) => err
           ? callback(err, false)
@@ -101,10 +98,7 @@ const after = (options, server, next) => {
     }
   })
 
-  const loginGet = (request, reply) => {
-    if (request.auth.isAuthenticated) { return reply.redirect('/') }
-    return reply.view('login')
-  }
+  const loginGet = (request, reply) => request.auth.isAuthenticated ? reply.redirect('/') : reply.view('login')
 
   const loginPost = (request, reply) => {
     if (request.auth.isAuthenticated) { return reply.redirect('/') }
@@ -114,7 +108,8 @@ const after = (options, server, next) => {
 
     db.auth(request.payload.username, request.payload.password, (err, body, headers) => {
       if (err) { return reply.view('login', { message: 'Invalid username or password' }) }
-      request.server.app.cache.set(body.name, { account: body }, 0, (err) => {
+      if (!body.name) { body.name = request.payload.username }
+      cache.set(body.name, { account: body }, 0, (err) => {
         if (err) { return reply(err) }
         request.cookieAuth.set({ sid: body.name })
         reply.redirect('/')
@@ -144,7 +139,7 @@ const after = (options, server, next) => {
 
   server.route({
     method: 'GET',
-    path: '/testing2',
+    path: '/testing',
     handler: { view: 'testing' }
   })
 
