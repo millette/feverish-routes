@@ -6,8 +6,24 @@ require('dotenv-safe').load({
   sample: 'node_modules/feverish-routes/.env.example'
 })
 
-const db = require('nano')('http://localhost:5985/')
+const nano = require('nano')
+
+// core
+const url = require('url')
+
 const pkg = require('./package.json')
+
+let dbDocs
+
+nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
+  if (err) { process.exit(200) }
+  // console.log('body1:', body)
+  // console.log('head1:', headers)
+  dbDocs = nano({
+    url: url.resolve(process.env.DBURL, 'groupe2016'),
+    cookie: headers['set-cookie']
+  })
+})
 
 const after = (options, server, next) => {
   const cache = server.cache({ segment: 'sessions', expiresIn: 3 * 24 * 60 * 60 * 1000 })
@@ -98,15 +114,16 @@ const after = (options, server, next) => {
     }
   })
 
+  const travailJson = (request, reply) => dbDocs.view('feverish', 'travaux', { group: true }, (err, body, more) => reply(err || body.rows))
+  const themeJson = (request, reply) => dbDocs.view('feverish', 'themes', { group: true }, (err, body, more) => reply(err || body.rows))
   const loginGet = (request, reply) => request.auth.isAuthenticated ? reply.redirect('/') : reply.view('login')
-
   const loginPost = (request, reply) => {
     if (request.auth.isAuthenticated) { return reply.redirect('/') }
     if (!request.payload.username || !request.payload.password) {
       return reply.view('login', { message: 'Missing username or password' })
     }
 
-    db.auth(request.payload.username, request.payload.password, (err, body, headers) => {
+    nano(process.env.DBURL).auth(request.payload.username, request.payload.password, (err, body, headers) => {
       if (err) { return reply.view('login', { message: 'Invalid username or password' }) }
       if (!body.name) { body.name = request.payload.username }
       cache.set(body.name, { account: body }, 0, (err) => {
@@ -136,6 +153,32 @@ const after = (options, server, next) => {
       plugins: { 'hapi-auth-cookie': { redirectTo: false } }
     }
   })
+
+  server.route({
+    method: 'GET',
+    path: '/theme.json',
+    handler: themeJson
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/travail.json',
+    handler: travailJson
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/new',
+    handler: { view: 'create-exercice' }
+  })
+
+  /*
+  server.route({
+    method: 'POST',
+    path: '/new',
+    handler: { view: 'testing' }
+  })
+  */
 
   server.route({
     method: 'GET',
