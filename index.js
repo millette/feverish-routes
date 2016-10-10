@@ -54,19 +54,21 @@ const after = (options, server, next) => {
   const welcome = (request, reply) => {
     cache.get('accueil', (err, cached) => {
       if (err) { return reply(err) }
-      if (cached) { return reply.view('bienvenue', { active: 'accueil', content: cached.content }).etag(cached._rev) }
+      if (cached) {
+        cached.active = 'accueil'
+        return reply.view('bienvenue', cached).etag(cached._rev)
+      }
       nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
         if (err) { return reply(err) }
-        nano({
-          url: dbUrl,
-          cookie: headers['set-cookie']
-        }).get('accueil', (err, body) => {
-          if (err) { return reply(err) }
-          cache.set('accueil', body, 0, (err) => {
+        nano({ url: dbUrl, cookie: headers['set-cookie']})
+          .get('accueil', (err, body) => {
             if (err) { return reply(err) }
-            return reply.view('bienvenue', { active: 'accueil', content: body.content }).etag(body._rev)
+            cache.set('accueil', body, 0, (err) => {
+              if (err) { return reply(err) }
+              body.active = 'accueil'
+              return reply.view('bienvenue', body).etag(body._rev)
+            })
           })
-        })
       })
     })
   }
@@ -77,18 +79,31 @@ const after = (options, server, next) => {
     handler: welcome
   })
 
+  const studentMenu = function (row) {
+    return '<td><a class="label success" href="/score/' + row._id + '">Consulter mon résultat</a></td>'
+  }
+
+  const exercices = (request, reply) => {
+    nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
+      if (err) { return reply(err) }
+      nano({ url: dbUrl, cookie: headers['set-cookie']})
+        .view('feverish', 'exercices', { 'include_docs': true, 'descending': true }, (err, body, headers) => {
+          console.log('ERR :', err)
+          console.log('BODY:', body)
+          console.log('HEAD:', headers)
+          if (err) { return reply(err) }
+          body.active = 'exercices'
+          body.rows = body.rows.map((r) => r.doc)
+          body.userMenu = studentMenu
+          return reply.view('exercices', body).etag(headers.etag)
+        })
+    })
+  }
+
   server.route({
     method: 'GET',
     path: '/exercices',
-    handler: {
-      view: {
-        template: 'exercices',
-        context: {
-          active: 'exercices',
-          rows: []
-        }
-      }
-    }
+    handler: exercices
   })
 
   server.route({
