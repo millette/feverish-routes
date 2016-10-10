@@ -101,51 +101,42 @@ const after = (options, server, next) => {
     }
   })
 
-  let uuid = 1 // Use seq instead of proper unique identifiers for demo only
-  const users = {
-    john: {
-      id: 'john',
-      password: 'password',
-      name: 'John Doe',
-      roles: ['student']
-    }
+  const loginGet = (request, reply) => {
+    if (request.auth.isAuthenticated) { return reply.redirect('/') }
+    return reply.view('login')
   }
 
-  const login = (request, reply) => {
+  const loginPost = (request, reply) => {
     if (request.auth.isAuthenticated) { return reply.redirect('/') }
-    let message = ''
-    let account = null
-
-    if (request.method === 'post') {
-      if (request.payload.username && request.payload.password) {
-        account = users[request.payload.username]
-        console.log('login', account)
-
-        db.auth(request.payload.username, request.payload.password, (err, a, b, c) => {
-          console.log('auth', err, a, b, c)
-        })
-
-        if (!account || account.password !== request.payload.password) { message = 'Invalid username or password' }
-      } else {
-        message = 'Missing username or password'
-      }
+    if (!request.payload.username || !request.payload.password) {
+      return reply.view('login', { message: 'Missing username or password' })
     }
 
-    if (request.method === 'get' || message) { return reply.view('login', { message: message }) }
-
-    const sid = String(++uuid)
-    request.server.app.cache.set(sid, { account: account }, 0, (err) => {
-      if (err) { return reply(err) }
-      request.cookieAuth.set({ sid: sid })
-      return reply.redirect('/')
+    db.auth(request.payload.username, request.payload.password, (err, body, headers) => {
+      if (err) { return reply.view('login', { message: 'Invalid username or password' }) }
+      request.server.app.cache.set(body.name, { account: body }, 0, (err) => {
+        if (err) { return reply(err) }
+        request.cookieAuth.set({ sid: body.name })
+        reply.redirect('/')
+      })
     })
   }
 
   server.route({
-    method: ['GET', 'POST'],
+    method: 'GET',
     path: '/login',
     config: {
-      handler: login,
+      handler: loginGet,
+      auth: { mode: 'try' },
+      plugins: { 'hapi-auth-cookie': { redirectTo: false } }
+    }
+  })
+
+  server.route({
+    method: 'POST',
+    path: '/login',
+    config: {
+      handler: loginPost,
       auth: { mode: 'try' },
       plugins: { 'hapi-auth-cookie': { redirectTo: false } }
     }
