@@ -51,15 +51,30 @@ const after = (options, server, next) => {
     }
   })
 
+  const welcome = (request, reply) => {
+    cache.get('accueil', (err, cached) => {
+      if (err) { return reply(err) }
+      if (cached) { return reply.view('bienvenue', { active: 'accueil', content: cached.content }).etag(cached._rev) }
+      nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
+        if (err) { return reply(err) }
+        nano({
+          url: dbUrl,
+          cookie: headers['set-cookie']
+        }).get('accueil', (err, body) => {
+          if (err) { return reply(err) }
+          cache.set('accueil', body, 0, (err) => {
+            if (err) { return reply(err) }
+            return reply.view('bienvenue', { active: 'accueil', content: body.content }).etag(body._rev)
+          })
+        })
+      })
+    })
+  }
+
   server.route({
     method: 'GET',
     path: '/',
-    handler: {
-      view: {
-        template: 'bienvenue',
-        context: { active: 'accueil' }
-      }
-    }
+    handler: welcome
   })
 
   server.route({
@@ -115,30 +130,10 @@ const after = (options, server, next) => {
           cookie: headers['set-cookie']
         }).view('feverish', type, { group: true }, (err, body) => {
           if (err) { return reply(err) }
-          cache.set(type, body.rows, 0, (err) => reply(err|body.rows))
+          cache.set(type, body.rows, 0, (err) => reply(err || body.rows))
         })
       })
     })
-
-/*
-  // const travailJson = (request, reply) => autocompleters.bind('travaux')
-
-  const themeJson = (request, reply) =>
-    cache.get('themes', (err, cached) => {
-      if (err) { return reply(err) }
-      if (cached) { return reply(cached) }
-      nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
-        if (err) { return reply(err) }
-        nano({
-          url: dbUrl,
-          cookie: headers['set-cookie']
-        }).view('feverish', 'themes', { group: true }, (err, body) => {
-          if (err) { return reply(err) }
-          cache.set('themes', body.rows, 0, (err) => reply(err|body.rows))
-        })
-      })
-    })
-*/
 
   const loginGet = (request, reply) => request.auth.isAuthenticated ? reply.redirect('/') : reply.view('login')
   const loginPost = (request, reply) => {
