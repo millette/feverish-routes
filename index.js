@@ -13,17 +13,7 @@ const url = require('url')
 
 const pkg = require('./package.json')
 
-let dbDocs
-
-nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
-  if (err) { process.exit(200) }
-  // console.log('body1:', body)
-  // console.log('head1:', headers)
-  dbDocs = nano({
-    url: url.resolve(process.env.DBURL, 'groupe2016'),
-    cookie: headers['set-cookie']
-  })
-})
+const dbUrl = url.resolve(process.env.DBURL, 'groupe2016')
 
 const after = (options, server, next) => {
   const cache = server.cache({ segment: 'sessions', expiresIn: 3 * 24 * 60 * 60 * 1000 })
@@ -114,8 +104,42 @@ const after = (options, server, next) => {
     }
   })
 
-  const travailJson = (request, reply) => dbDocs.view('feverish', 'travaux', { group: true }, (err, body, more) => reply(err || body.rows))
-  const themeJson = (request, reply) => dbDocs.view('feverish', 'themes', { group: true }, (err, body, more) => reply(err || body.rows))
+  const autocompleters = (type, request, reply) =>
+    cache.get(type, (err, cached) => {
+      if (err) { return reply(err) }
+      if (cached) { return reply(cached) }
+      nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
+        if (err) { return reply(err) }
+        nano({
+          url: dbUrl,
+          cookie: headers['set-cookie']
+        }).view('feverish', type, { group: true }, (err, body) => {
+          if (err) { return reply(err) }
+          cache.set(type, body.rows, 0, (err) => reply(err|body.rows))
+        })
+      })
+    })
+
+/*
+  // const travailJson = (request, reply) => autocompleters.bind('travaux')
+
+  const themeJson = (request, reply) =>
+    cache.get('themes', (err, cached) => {
+      if (err) { return reply(err) }
+      if (cached) { return reply(cached) }
+      nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
+        if (err) { return reply(err) }
+        nano({
+          url: dbUrl,
+          cookie: headers['set-cookie']
+        }).view('feverish', 'themes', { group: true }, (err, body) => {
+          if (err) { return reply(err) }
+          cache.set('themes', body.rows, 0, (err) => reply(err|body.rows))
+        })
+      })
+    })
+*/
+
   const loginGet = (request, reply) => request.auth.isAuthenticated ? reply.redirect('/') : reply.view('login')
   const loginPost = (request, reply) => {
     if (request.auth.isAuthenticated) { return reply.redirect('/') }
@@ -157,13 +181,15 @@ const after = (options, server, next) => {
   server.route({
     method: 'GET',
     path: '/theme.json',
-    handler: themeJson
+    handler: autocompleters.bind(null, 'themes')
+    // handler: themeJson
   })
 
   server.route({
     method: 'GET',
     path: '/travail.json',
-    handler: travailJson
+    handler: autocompleters.bind(null, 'travaux')
+    // handler: travailJson
   })
 
   server.route({
