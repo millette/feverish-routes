@@ -60,7 +60,7 @@ const after = (options, server, next) => {
       }
       nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
         if (err) { return reply(err) }
-        nano({ url: dbUrl, cookie: headers['set-cookie']})
+        nano({ url: dbUrl, cookie: headers['set-cookie'] })
           .get('accueil', (err, body) => {
             if (err) { return reply(err) }
             cache.set('accueil', body, 0, (err) => {
@@ -94,7 +94,7 @@ const after = (options, server, next) => {
   const exercices = (request, reply) => {
     nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
       if (err) { return reply(err) }
-      nano({ url: dbUrl, cookie: headers['set-cookie']})
+      nano({ url: dbUrl, cookie: headers['set-cookie'] })
         .view('feverish', 'exercices', { 'include_docs': true, 'descending': true }, (err, body, headers) => {
           if (err) { return reply(err) }
           body.active = 'exercices'
