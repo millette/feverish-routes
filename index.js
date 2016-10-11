@@ -121,11 +121,19 @@ const after = (options, server, next) => {
   })
 
   const rendu = function (request, reply) {
+    nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
+      if (err) { return reply(err) }
+      nano({ url: dbUrl, cookie: headers['set-cookie'] })
+        .attachment.get(request.params.ex, request.params.att, (e, b, h) => {
+          if (e) { return reply(e) }
+          reply(b).etag(h.etag)
+        })
+    })
   }
 
   server.route({
     method: 'GET',
-    path: '/rendu',
+    path: '/rendu/{ex}/{att}',
     handler: rendu
   })
 
