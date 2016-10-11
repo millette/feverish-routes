@@ -94,16 +94,16 @@ const after = (options, server, next) => {
     '</div></td>'
   ].join('')
 
-  const exercices = (request, reply) => {
+  const exercices = (page, request, reply) => {
     nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
       if (err) { return reply(err) }
       nano({ url: dbUrl, cookie: headers['set-cookie'] })
         .view('feverish', 'exercices', { 'include_docs': true, 'descending': true }, (err, body, headers) => {
           if (err) { return reply(err) }
-          body.active = 'exercices'
+          body.active = page
           body.rows = body.rows.map((r) => r.doc)
           body.userMenu = request.auth.credentials.roles.indexOf('teacher') === -1 ? studentMenu : teacherMenu
-          return reply.view('exercices', body).etag(headers.etag + request.auth.credentials.name)
+          return reply.view(page, body).etag(headers.etag + request.auth.credentials.name)
         })
     })
   }
@@ -111,21 +111,13 @@ const after = (options, server, next) => {
   server.route({
     method: 'GET',
     path: '/exercices',
-    handler: exercices
+    handler: exercices.bind(null, 'exercices')
   })
 
   server.route({
     method: 'GET',
     path: '/rendus',
-    handler: {
-      view: {
-        template: 'rendus',
-        context: {
-          rows: [],
-          active: 'rendus'
-        }
-      }
-    }
+    handler: exercices.bind(null, 'rendus')
   })
 
   server.route({
