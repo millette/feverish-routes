@@ -126,7 +126,7 @@ const after = (options, server, next) => {
       nano({ url: dbUrl, cookie: headers['set-cookie'] })
         .attachment.get(request.params.ex, request.params.att, (e, b, h) => {
           if (e) { return reply(e) }
-          reply(b).etag(h.etag)
+          reply(b).type(h['content-type']).etag(h.etag)
         })
     })
   }
