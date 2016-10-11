@@ -52,9 +52,11 @@ const after = (options, server, next) => {
   })
 
   const welcome = (request, reply) => {
+    const isStudent = request.auth.credentials.roles.indexOf('teacher') === -1
     cache.get('accueil', (err, cached) => {
       if (err) { return reply(err) }
       if (cached) {
+        cached.editor = !isStudent
         cached.active = 'accueil'
         return reply.view('bienvenue', cached).etag(cached._rev)
       }
@@ -65,6 +67,7 @@ const after = (options, server, next) => {
             if (err) { return reply(err) }
             cache.set('accueil', body, 0, (err) => {
               if (err) { return reply(err) }
+              body.editor = !isStudent
               body.active = 'accueil'
               return reply.view('bienvenue', body).etag(body._rev)
             })
