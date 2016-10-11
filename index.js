@@ -79,23 +79,28 @@ const after = (options, server, next) => {
     handler: welcome
   })
 
-  const studentMenu = function (row) {
-    return '<td><a class="label success" href="/score/' + row._id + '">Consulter mon résultat</a></td>'
-  }
+  const studentMenu = (row) => '<td><a class="label success" href="/score/' + row._id + '">Consulter mon résultat</a></td>'
+
+  const teacherMenu = (row) => [
+    '<td><a class="label" href="/edit/' + row._id + '">Éditer</a></td>',
+    '<td><a class="label success" href="/corrections/' + row._id + '">Corriger</a></td>',
+    '<td><div class="label warning" data-toggle="' + row._id + '">Effacer</div></td>',
+    '<td><div class="dropdown-pane top" id="' + row._id,
+    '" data-dropdown data-auto-focus="true" data-close-on-click="true" data-position-class="top">',
+    '<button type="button" class="confirm-delete button alert" data-exid="' + row._id + '" data-exrev="' + row._rev + '">Effacer ' + row.title + '</button>',
+    '</div></td>'
+  ].join('')
 
   const exercices = (request, reply) => {
     nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
       if (err) { return reply(err) }
       nano({ url: dbUrl, cookie: headers['set-cookie']})
         .view('feverish', 'exercices', { 'include_docs': true, 'descending': true }, (err, body, headers) => {
-          console.log('ERR :', err)
-          console.log('BODY:', body)
-          console.log('HEAD:', headers)
           if (err) { return reply(err) }
           body.active = 'exercices'
           body.rows = body.rows.map((r) => r.doc)
-          body.userMenu = studentMenu
-          return reply.view('exercices', body).etag(headers.etag)
+          body.userMenu = request.auth.credentials.roles.indexOf('teacher') === -1 ? studentMenu : teacherMenu
+          return reply.view('exercices', body).etag(headers.etag + request.auth.credentials.name)
         })
     })
   }
