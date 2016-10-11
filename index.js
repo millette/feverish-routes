@@ -51,7 +51,7 @@ const after = (options, server, next) => {
     }
   })
 
-  const welcome = (request, reply) => {
+  const welcome = function (request, reply) {
     const isStudent = request.auth.credentials.roles.indexOf('teacher') === -1
     cache.get('accueil', (err, cached) => {
       if (err) { return reply(err) }
@@ -94,7 +94,7 @@ const after = (options, server, next) => {
     '</div></td>'
   ].join('')
 
-  const exercices = (page, request, reply) => {
+  const exercices = function (page, request, reply) {
     nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
       if (err) { return reply(err) }
       nano({ url: dbUrl, cookie: headers['set-cookie'] })
@@ -120,6 +120,15 @@ const after = (options, server, next) => {
     handler: exercices.bind(null, 'rendus')
   })
 
+  const rendu = function (request, reply) {
+  }
+
+  server.route({
+    method: 'GET',
+    path: '/rendu',
+    handler: rendu
+  })
+
   server.route({
     method: 'GET',
     path: '/resultats',
@@ -134,7 +143,7 @@ const after = (options, server, next) => {
     }
   })
 
-  const autocompleters = (type, request, reply) =>
+  const autocompleters = function (type, request, reply) {
     cache.get(type, (err, cached) => {
       if (err) { return reply(err) }
       if (cached) { return reply(cached) }
@@ -149,9 +158,13 @@ const after = (options, server, next) => {
         })
       })
     })
+  }
 
-  const loginGet = (request, reply) => request.auth.isAuthenticated ? reply.redirect('/') : reply.view('login')
-  const loginPost = (request, reply) => {
+  const loginGet = function (request, reply) {
+    request.auth.isAuthenticated ? reply.redirect('/') : reply.view('login')
+  }
+
+  const loginPost = function (request, reply) {
     if (request.auth.isAuthenticated) { return reply.redirect('/') }
     if (!request.payload.username || !request.payload.password) {
       return reply.view('login', { message: 'Missing username or password' })
