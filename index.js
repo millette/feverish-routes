@@ -51,12 +51,13 @@ const after = (options, server, next) => {
     }
   })
 
+  const isTeacher = (request) => request.auth.credentials.roles.indexOf('teacher') !== -1
+
   const welcome = function (request, reply) {
-    const isStudent = request.auth.credentials.roles.indexOf('teacher') === -1
     cache.get('accueil', (err, cached) => {
       if (err) { return reply(err) }
       if (cached) {
-        cached.editor = !isStudent
+        cached.editor = isTeacher(request)
         cached.active = 'accueil'
         return reply.view('bienvenue', cached).etag(cached._rev)
       }
@@ -67,7 +68,7 @@ const after = (options, server, next) => {
             if (err) { return reply(err) }
             cache.set('accueil', body, 0, (err) => {
               if (err) { return reply(err) }
-              body.editor = !isStudent
+              body.editor = isTeacher(request)
               body.active = 'accueil'
               return reply.view('bienvenue', body).etag(body._rev)
             })
@@ -101,32 +102,12 @@ const after = (options, server, next) => {
         .view('feverish', 'exercices', { 'include_docs': true, 'descending': true }, (err, body, headers) => {
           if (err) { return reply(err) }
           body.active = page
-          switch (page) {
-            case 'exercices':
-              body.rows = body.rows.map((r) => r.doc)
-              body.userMenu = request.auth.credentials.roles.indexOf('teacher') === -1 ? studentMenu : teacherMenu
-              break;
-
-            case 'rendus':
-              body.rows = body.rows.map((r) => r.doc)
-              break;
-
-            case 'resultats':
-              body.student = request.auth.credentials.name
-              body.self = true
-              page = 'etudiant'
-              break;
-              /*
-              handler: {
-                view: {
-                  template: 'score',
-                  context: {
-                    doc: { _id: 'aaa', _rev: '2-bbb' },
-                    active: 'resultats'
-                  }
-                }
-              }
-              */
+          if (page === 'exercices') { body.userMenu = request.auth.credentials.roles.indexOf('teacher') === -1 ? studentMenu : teacherMenu }
+          if (page === 'exercices' || page === 'rendus') { body.rows = body.rows.map((r) => r.doc) }
+          if (page === 'resultats') {
+            body.student = request.auth.credentials.name
+            body.self = true
+            page = 'etudiant'
           }
           return reply.view(page, body).etag(headers.etag + request.auth.credentials.name)
         })
@@ -166,17 +147,6 @@ const after = (options, server, next) => {
     method: 'GET',
     path: '/resultats',
     handler: exercices.bind(null, 'resultats')
-    /*
-    handler: {
-      view: {
-        template: 'score',
-        context: {
-          doc: { _id: 'aaa', _rev: '2-bbb' },
-          active: 'resultats'
-        }
-      }
-    }
-    */
   })
 
   const autocompleters = function (type, request, reply) {
@@ -216,6 +186,20 @@ const after = (options, server, next) => {
       })
     })
   }
+
+  server.route({
+    method: 'GET',
+    path: '/etudiants',
+    handler: {
+      view: {
+        template: 'etudiants',
+        context: {
+          fixer: true,
+          active: 'etudiants'
+        }
+      }
+    }
+  })
 
   server.route({
     method: 'GET',
