@@ -101,8 +101,33 @@ const after = (options, server, next) => {
         .view('feverish', 'exercices', { 'include_docs': true, 'descending': true }, (err, body, headers) => {
           if (err) { return reply(err) }
           body.active = page
-          body.rows = body.rows.map((r) => r.doc)
-          body.userMenu = request.auth.credentials.roles.indexOf('teacher') === -1 ? studentMenu : teacherMenu
+          switch (page) {
+            case 'exercices':
+              body.rows = body.rows.map((r) => r.doc)
+              body.userMenu = request.auth.credentials.roles.indexOf('teacher') === -1 ? studentMenu : teacherMenu
+              break;
+
+            case 'rendus':
+              body.rows = body.rows.map((r) => r.doc)
+              break;
+
+            case 'resultats':
+              body.student = request.auth.credentials.name
+              body.self = true
+              page = 'etudiant'
+              break;
+              /*
+              handler: {
+                view: {
+                  template: 'score',
+                  context: {
+                    doc: { _id: 'aaa', _rev: '2-bbb' },
+                    active: 'resultats'
+                  }
+                }
+              }
+              */
+          }
           return reply.view(page, body).etag(headers.etag + request.auth.credentials.name)
         })
     })
@@ -140,6 +165,8 @@ const after = (options, server, next) => {
   server.route({
     method: 'GET',
     path: '/resultats',
+    handler: exercices.bind(null, 'resultats')
+    /*
     handler: {
       view: {
         template: 'score',
@@ -149,6 +176,7 @@ const after = (options, server, next) => {
         }
       }
     }
+    */
   })
 
   const autocompleters = function (type, request, reply) {
