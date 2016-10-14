@@ -14,6 +14,7 @@ const url = require('url')
 const pkg = require('./package.json')
 
 const dbUrl = url.resolve(process.env.DBURL, 'groupe2016')
+const dbUsers = url.resolve(process.env.DBURL, '_users')
 
 const after = (options, server, next) => {
   const cache = server.cache({ segment: 'sessions', expiresIn: 3 * 24 * 60 * 60 * 1000 })
@@ -187,18 +188,37 @@ const after = (options, server, next) => {
     })
   }
 
+  const userSorter = (a, b) => {
+    const a1 = a.name ? a.name : a.doc.name
+    const b1 = b.name ? b.name : b.doc.name
+    const a2 = a1.toLowerCase().split(' ').reverse().join(' ')
+    const b2 = b1.toLowerCase().split(' ').reverse().join(' ')
+    return a2.localeCompare(b2)
+  }
+
+  const etudiants = function (request, reply) {
+    nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
+      if (err) { return reply(err) }
+      nano({ url: dbUsers, cookie: headers['set-cookie'] })
+        .list({
+          include_docs: true,
+          startkey: 'org.couchdb.user:',
+          endkey: 'org.couchdb.user:\ufff0'
+        }, (err, body, headers) => {
+          if (err) { return reply(err) }
+          body.active = 'etudiants'
+          body.rows = body.rows
+            .filter((row) => row.doc.roles.indexOf('student') !== -1)
+            .sort(userSorter)
+          reply.view('etudiants', body).etag(headers.etag)
+        })
+    })
+  }
+
   server.route({
     method: 'GET',
     path: '/etudiants',
-    handler: {
-      view: {
-        template: 'etudiants',
-        context: {
-          fixer: true,
-          active: 'etudiants'
-        }
-      }
-    }
+    handler: etudiants
   })
 
   server.route({
