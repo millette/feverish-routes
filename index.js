@@ -7,6 +7,7 @@ require('dotenv-safe').load({
 })
 
 const nano = require('nano')
+const Boom = require('boom')
 
 // core
 const url = require('url')
@@ -218,6 +219,32 @@ const after = (options, server, next) => {
         })
     })
   }
+
+  const etudiantDelete = function (request, reply) {
+    if (request.auth.credentials.roles.indexOf('teacher') === -1) {
+      return reply(Boom.forbidden('Can\'t touch this.'))
+    }
+
+    // TODO: delete rendus de référence and all other related stuff
+    nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
+      if (err) { return reply(err) }
+      nano({ url: dbUsers, cookie: headers['set-cookie'] })
+        .head(request.params.userid, (err, body, head) => {
+          if (err) { return reply(err) }
+          nano({ url: dbUsers, cookie: headers['set-cookie'] })
+            .destroy(request.params.userid, head.etag.slice(1, -1), (e2, b2, h2) => {
+              if (e2) { return reply(e2) }
+              reply({ ok: true })
+            })
+        })
+    })
+  }
+
+  server.route({
+    method: 'DELETE',
+    path: '/etudiant/{userid}',
+    handler: etudiantDelete
+  })
 
   server.route({
     method: 'GET',
