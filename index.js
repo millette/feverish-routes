@@ -210,6 +210,10 @@ const after = (options, server, next) => {
           body.rows = body.rows
             .filter((row) => row.doc.roles.indexOf('student') !== -1)
             .sort(userSorter)
+            .map((row) => {
+              delete row.doc
+              return row
+            })
           reply.view('etudiants', body).etag(headers.etag)
         })
     })
