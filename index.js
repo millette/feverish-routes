@@ -179,7 +179,16 @@ const after = (options, server, next) => {
     }
 
     nano(process.env.DBURL).auth(request.payload.username, request.payload.password, (err, body, headers) => {
-      if (err) { return reply.view('login', { message: 'Invalid username or password' }) }
+      if (err) {
+        if (err.statusCode === 401) {
+          reply.view('login', { message: err.reason })
+        } else if (err.code === 'ECONNREFUSED') {
+          reply.view('login', { message: 'Problem with the database.' })
+        } else {
+          reply(err)
+        }
+        return
+      }
       if (!body.name) { body.name = request.payload.username }
       cache.set(body.name, { account: body }, 0, (err) => {
         if (err) { return reply(err) }
