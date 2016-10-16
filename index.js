@@ -44,15 +44,6 @@ const after = (options, server, next) => {
     }
   })
 
-  server.route({
-    method: 'POST',
-    path: '/logout',
-    handler: (request, reply) => {
-      request.cookieAuth.clear()
-      return reply.redirect('/')
-    }
-  })
-
   const isTeacher = (request) => request.auth.credentials.roles.indexOf('teacher') !== -1
 
   const welcome = function (request, reply) {
@@ -78,12 +69,6 @@ const after = (options, server, next) => {
       })
     })
   }
-
-  server.route({
-    method: 'GET',
-    path: '/',
-    handler: welcome
-  })
 
   const studentMenu = (row) => '<td><a class="label success" href="/score/' + row._id + '">Consulter mon résultat</a></td>'
 
@@ -116,30 +101,12 @@ const after = (options, server, next) => {
     return reply.view('exercices', body).etag(request.pre.exercices.etag)
   }
 
-  server.route({
-    method: 'GET',
-    path: '/exercices',
-    config: {
-      pre: [{ method: getExercices, assign: 'exercices' }],
-      handler: exercices
-    }
-  })
-
   const rendus = function (request, reply) {
     const body = request.pre.exercices.body
     body.active = 'rendus'
     body.rows = body.rows.map((r) => r.doc)
     return reply.view('rendus', body).etag(request.pre.exercices.etag)
   }
-
-  server.route({
-    method: 'GET',
-    path: '/rendus',
-    config: {
-      pre: [{ method: getExercices, assign: 'exercices' }],
-      handler: rendus
-    }
-  })
 
   const resultats = function (request, reply) {
     const body = request.pre.exercices.body
@@ -148,15 +115,6 @@ const after = (options, server, next) => {
     body.self = true
     return reply.view('etudiant', body).etag(request.pre.exercices.etag)
   }
-
-  server.route({
-    method: 'GET',
-    path: '/resultats',
-    config: {
-      pre: [{ method: getExercices, assign: 'exercices' }],
-      handler: resultats
-    }
-  })
 
   const rendu = function (request, reply) {
     nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
@@ -168,12 +126,6 @@ const after = (options, server, next) => {
         })
     })
   }
-
-  server.route({
-    method: 'GET',
-    path: '/rendu/{ex}/{att}',
-    handler: rendu
-  })
 
   const autocompleters = function (type, request, reply) {
     cache.get(type, (err, cached) => {
@@ -274,6 +226,54 @@ const after = (options, server, next) => {
   }
 
   server.route({
+    method: 'POST',
+    path: '/logout',
+    handler: (request, reply) => {
+      request.cookieAuth.clear()
+      return reply.redirect('/')
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    handler: welcome
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/exercices',
+    config: {
+      pre: [{ method: getExercices, assign: 'exercices' }],
+      handler: exercices
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/rendus',
+    config: {
+      pre: [{ method: getExercices, assign: 'exercices' }],
+      handler: rendus
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/resultats',
+    config: {
+      pre: [{ method: getExercices, assign: 'exercices' }],
+      handler: resultats
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/rendu/{ex}/{att}',
+    handler: rendu
+  })
+
+  server.route({
     method: 'DELETE',
     path: '/etudiant/{userid}',
     handler: etudiantDelete
@@ -337,27 +337,6 @@ const after = (options, server, next) => {
     method: 'GET',
     path: '/testing',
     handler: { view: 'testing' }
-  })
-
-  server.route({
-    method: 'GET',
-    path: '/css/{param*}',
-    handler: { directory: { path: './assets/css/' } }
-  })
-
-  server.route({
-    method: 'GET',
-    path: '/img/{param*}',
-    handler: { directory: { path: './assets/img/' } }
-  })
-
-  server.route({
-    method: 'GET',
-    path: '/js/{param*}',
-    config: {
-      auth: false,
-      handler: { directory: { path: './assets/js/' } }
-    }
   })
 
   next()
