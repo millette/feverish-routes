@@ -14,13 +14,6 @@ const utils = require('./lib/utils')
 const after = (options, server, next) => {
   const cache = server.app.cache
 
-  server.views({
-    engines: { html: require('lodash-vision') },
-    path: 'templates',
-    partialsPath: 'templates/partials',
-    isCached: process.env.TEMPLATE_CACHE.toLowerCase() === 'true'
-  })
-
   const welcome = function (request, reply) {
     cache.get('accueil', (err, cached) => {
       if (err) { return reply(err) }
@@ -61,6 +54,13 @@ const after = (options, server, next) => {
       })
     })
   }
+
+  server.views({
+    engines: { html: require('lodash-vision') },
+    path: 'templates',
+    partialsPath: 'templates/partials',
+    isCached: process.env.TEMPLATE_CACHE.toLowerCase() === 'true'
+  })
 
   server.route({
     method: 'GET',
