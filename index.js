@@ -169,7 +169,7 @@ const after = (options, server, next) => {
   }
 
   const loginGet = function (request, reply) {
-    request.auth.isAuthenticated ? reply.redirect('/') : reply.view('login')
+    request.auth.isAuthenticated ? reply.redirect('/') : reply.view('login').etag(pkg.version)
   }
 
   const loginPost = function (request, reply) {
@@ -318,7 +318,10 @@ const after = (options, server, next) => {
   server.route({
     method: 'GET',
     path: '/{param*}',
-    handler: { directory: { path: './assets/' } }
+    config: {
+      auth: false,
+      handler: { directory: { path: './assets/' } },
+    }
   })
 
   next()
