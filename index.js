@@ -318,13 +318,13 @@ const after = (options, server, next) => {
   server.route({
     method: 'GET',
     path: '/css/{param*}',
-    handler: { directory: { path: './assets/css/' } },
+    handler: { directory: { path: './assets/css/' } }
   })
 
   server.route({
     method: 'GET',
     path: '/img/{param*}',
-    handler: { directory: { path: './assets/img/' } },
+    handler: { directory: { path: './assets/img/' } }
   })
 
   server.route({
@@ -332,7 +332,7 @@ const after = (options, server, next) => {
     path: '/js/{param*}',
     config: {
       auth: false,
-      handler: { directory: { path: './assets/js/' } },
+      handler: { directory: { path: './assets/js/' } }
     }
   })
 
