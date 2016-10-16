@@ -97,35 +97,65 @@ const after = (options, server, next) => {
     '</div></td>'
   ].join('')
 
-  const exercices = function (page, request, reply) {
+  const getExercices = function (request, reply) {
     nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
       if (err) { return reply(err) }
       nano({ url: dbUrl, cookie: headers['set-cookie'] })
         .view('feverish', 'exercices', { 'include_docs': true, 'descending': true }, (err, body, headers) => {
           if (err) { return reply(err) }
-          body.active = page
-          if (page === 'exercices') { body.userMenu = request.auth.credentials.roles.indexOf('teacher') === -1 ? studentMenu : teacherMenu }
-          if (page === 'exercices' || page === 'rendus') { body.rows = body.rows.map((r) => r.doc) }
-          if (page === 'resultats') {
-            body.student = request.auth.credentials.name
-            body.self = true
-            page = 'etudiant'
-          }
-          return reply.view(page, body).etag(headers.etag + request.auth.credentials.name)
+          return reply({ body: body, etag: headers.etag + request.auth.credentials.name })
         })
     })
+  }
+
+  const exercices = function (request, reply) {
+    const body = request.pre.exercices.body
+    body.active = 'exercices'
+    body.rows = body.rows.map((r) => r.doc)
+    body.userMenu = request.auth.credentials.roles.indexOf('teacher') === -1 ? studentMenu : teacherMenu
+    return reply.view('exercices', body).etag(request.pre.exercices.etag)
   }
 
   server.route({
     method: 'GET',
     path: '/exercices',
-    handler: exercices.bind(null, 'exercices')
+    config: {
+      pre: [{ method: getExercices, assign: 'exercices' }],
+      handler: exercices
+    }
   })
+
+  const rendus = function (request, reply) {
+    const body = request.pre.exercices.body
+    body.active = 'rendus'
+    body.rows = body.rows.map((r) => r.doc)
+    return reply.view('rendus', body).etag(request.pre.exercices.etag)
+  }
 
   server.route({
     method: 'GET',
     path: '/rendus',
-    handler: exercices.bind(null, 'rendus')
+    config: {
+      pre: [{ method: getExercices, assign: 'exercices' }],
+      handler: rendus
+    }
+  })
+
+  const resultats = function (request, reply) {
+    const body = request.pre.exercices.body
+    body.active = 'resultats'
+    body.student = request.auth.credentials.name
+    body.self = true
+    return reply.view('etudiant', body).etag(request.pre.exercices.etag)
+  }
+
+  server.route({
+    method: 'GET',
+    path: '/resultats',
+    config: {
+      pre: [{ method: getExercices, assign: 'exercices' }],
+      handler: resultats
+    }
   })
 
   const rendu = function (request, reply) {
@@ -143,12 +173,6 @@ const after = (options, server, next) => {
     method: 'GET',
     path: '/rendu/{ex}/{att}',
     handler: rendu
-  })
-
-  server.route({
-    method: 'GET',
-    path: '/resultats',
-    handler: exercices.bind(null, 'resultats')
   })
 
   const autocompleters = function (type, request, reply) {
