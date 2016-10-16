@@ -17,22 +17,15 @@ const after = (options, server, next) => {
   const welcome = function (request, reply) {
     cache.get('accueil', (err, cached) => {
       if (err) { return reply(err) }
-      if (cached) {
-        cached.editor = utils.isTeacher(request)
-        cached.active = 'accueil'
-        return reply.view('bienvenue', cached).etag(cached._rev)
-      }
+      if (cached) { return reply.view('bienvenue', cached).etag(cached._rev) }
       nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
         if (err) { return reply(err) }
         nano({ url: utils.dbUrl, cookie: headers['set-cookie'] })
           .get('accueil', (err, body) => {
             if (err) { return reply(err) }
-            cache.set('accueil', body, 0, (err) => {
-              if (err) { return reply(err) }
-              body.editor = utils.isTeacher(request)
-              body.active = 'accueil'
-              return reply.view('bienvenue', body).etag(body._rev)
-            })
+            body.editor = utils.isTeacher(request)
+            body.active = 'accueil'
+            cache.set('accueil', body, 0, (err) => err ? reply(err) : reply.view('bienvenue', body).etag(body._rev))
           })
       })
     })
