@@ -17,6 +17,8 @@ const pkg = require('./package.json')
 const dbUrl = url.resolve(process.env.DBURL, 'groupe2016')
 const dbUsers = url.resolve(process.env.DBURL, '_users')
 
+const isTeacher = (request) => request.auth.credentials.roles.indexOf('teacher') !== -1
+
 const after = (options, server, next) => {
   const cache = server.cache({ segment: 'sessions', expiresIn: 3 * 24 * 60 * 60 * 1000 })
   server.app.cache = cache
@@ -43,8 +45,6 @@ const after = (options, server, next) => {
       )
     }
   })
-
-  const isTeacher = (request) => request.auth.credentials.roles.indexOf('teacher') !== -1
 
   const welcome = function (request, reply) {
     cache.get('accueil', (err, cached) => {
@@ -309,14 +309,12 @@ const after = (options, server, next) => {
     method: 'GET',
     path: '/theme.json',
     handler: autocompleters.bind(null, 'themes')
-    // handler: themeJson
   })
 
   server.route({
     method: 'GET',
     path: '/travail.json',
     handler: autocompleters.bind(null, 'travaux')
-    // handler: travailJson
   })
 
   server.route({
@@ -332,12 +330,6 @@ const after = (options, server, next) => {
     handler: { view: 'testing' }
   })
   */
-
-  server.route({
-    method: 'GET',
-    path: '/testing',
-    handler: { view: 'testing' }
-  })
 
   next()
 }
