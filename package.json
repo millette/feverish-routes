@@ -13,6 +13,7 @@
   "dependencies": {
     "boom": "^4.2.0",
     "dotenv-safe": "^2.3.2",
+    "feverish-auth": "file:///home/millette/feverish-auth",
     "hapi-auth-cookie": "^6.1.1",
     "hapi-context-credentials": "^2.0.0",
     "lodash-vision": "0.0.1",
