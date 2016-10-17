@@ -19,7 +19,7 @@ const after = (options, server, next) => {
       if (err) { return reply(err) }
       if (cached) {
         cached.editor = utils.isTeacher(request)
-        return reply.view('bienvenue', cached).etag(cached._rev)
+        return reply.view('bienvenue', cached).etag(cached.etag)
       }
       nano(process.env.DBURL).auth(process.env.DBUSER, process.env.DBPW, (err, body, headers) => {
         if (err) { return reply(err) }
@@ -30,7 +30,8 @@ const after = (options, server, next) => {
             cache.set('accueil', body, 0, (err) => {
               if (err) { return reply(err) }
               body.editor = utils.isTeacher(request)
-              reply.view('bienvenue', body).etag(body._rev)
+              body.etag = body._rev + request.auth.credentials.name
+              reply.view('bienvenue', body).etag(body.etag)
             })
           })
       })
@@ -136,6 +137,16 @@ const after = (options, server, next) => {
     config: {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
       handler: { view: 'create-exercice' }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/score/{ex}',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['student'] } },
+      pre: [{ method: utils.getScore, assign: 'score' }],
+      handler: utils.score
     }
   })
 
