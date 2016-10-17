@@ -103,13 +103,19 @@ const after = (options, server, next) => {
   server.route({
     method: 'DELETE',
     path: '/etudiant/{userid}',
-    handler: utils.etudiantDelete
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      handler: utils.etudiantDelete
+    }
   })
 
   server.route({
     method: 'GET',
     path: '/etudiants',
-    handler: utils.etudiants
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      handler: utils.etudiants
+    }
   })
 
   server.route({
@@ -127,7 +133,10 @@ const after = (options, server, next) => {
   server.route({
     method: 'GET',
     path: '/new',
-    handler: { view: 'create-exercice' }
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      handler: { view: 'create-exercice' }
+    }
   })
 
   next()
