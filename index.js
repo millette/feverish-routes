@@ -180,6 +180,26 @@ const after = (options, server, next) => {
     }
   })
 
+  server.route({
+    method: 'GET',
+    path: '/corrections/{ex}',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      pre: [{ method: utils.getScore, assign: 'score' }],
+      handler: utils.corrections
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/corrections/{ex}/{user}',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      pre: [{ method: utils.getScore, assign: 'score' }],
+      handler: utils.correctionsUser
+    }
+  })
+
   next()
 }
 
