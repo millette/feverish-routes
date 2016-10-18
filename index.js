@@ -152,6 +152,16 @@ const after = (options, server, next) => {
 
   server.route({
     method: 'GET',
+    path: '/edit/{ex}',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      pre: [{ method: utils.getScore, assign: 'score' }],
+      handler: utils.editExercice
+    }
+  })
+
+  server.route({
+    method: 'GET',
     path: '/configure',
     config: {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
