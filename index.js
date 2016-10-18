@@ -200,6 +200,24 @@ const after = (options, server, next) => {
     }
   })
 
+  server.route({
+    method: 'GET',
+    path: '/etudiants/new',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      handler: { view: 'etudiants-new' }
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/etudiants/lot',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      handler: { view: 'etudiants-lot' }
+    }
+  })
+
   next()
 }
 
