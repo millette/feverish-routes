@@ -150,6 +150,15 @@ const after = (options, server, next) => {
     }
   })
 
+  server.route({
+    method: 'GET',
+    path: '/configure',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      handler: utils.configure
+    }
+  })
+
   next()
 }
 
