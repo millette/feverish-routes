@@ -90,8 +90,19 @@ const after = (options, server, next) => {
     method: 'GET',
     path: '/resultats',
     config: {
+      plugins: { hapiAuthorization: { roles: ['student'] } },
       pre: [{ method: utils.getExercices, assign: 'exercices' }],
       handler: utils.resultats
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/etudiant/{student}',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      pre: [{ method: utils.getExercices, assign: 'exercices' }],
+      handler: utils.resultats2
     }
   })
 
