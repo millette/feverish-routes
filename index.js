@@ -192,6 +192,15 @@ const after = (options, server, next) => {
   })
 
   server.route({
+    method: 'DELETE',
+    path: '/delete/{ex}',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      handler: utils.delExercice
+    }
+  })
+
+  server.route({
     method: 'GET',
     path: '/configure',
     config: {
