@@ -11,7 +11,6 @@
     "standard": "^8.4.0"
   },
   "dependencies": {
-    "boom": "^4.2.0",
     "dotenv-safe": "^2.3.2",
     "feverish-auth": "file:///home/millette/feverish-auth",
     "got": "^6.5.0",
@@ -22,7 +21,6 @@
     "vision": "^4.1.0"
   },
   "notHapiPlugins": [
-    "boom",
     "dotenv-safe",
     "got",
     "lodash-vision",

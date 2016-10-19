@@ -144,6 +144,16 @@ const after = (options, server, next) => {
 
   server.route({
     method: 'GET',
+    path: '/score/{ex}',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['student'] } },
+      pre: [{ method: utils.getScore, assign: 'score' }],
+      handler: utils.score
+    }
+  })
+
+  server.route({
+    method: 'GET',
     path: '/new',
     config: {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
@@ -157,17 +167,7 @@ const after = (options, server, next) => {
     config: {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
       pre: [{ method: utils.updateExercice, assign: 'updex' }],
-      handler: utils.createExercice
-    }
-  })
-
-  server.route({
-    method: 'GET',
-    path: '/score/{ex}',
-    config: {
-      plugins: { hapiAuthorization: { roles: ['student'] } },
-      pre: [{ method: utils.getScore, assign: 'score' }],
-      handler: utils.score
+      handler: utils.editExercicePost
     }
   })
 
@@ -178,6 +178,16 @@ const after = (options, server, next) => {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
       pre: [{ method: utils.getScore, assign: 'score' }],
       handler: utils.editExercice
+    }
+  })
+
+  server.route({
+    method: 'POST',
+    path: '/edit/{ex}',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      pre: [{ method: utils.updateExercice, assign: 'updex' }],
+      handler: utils.editExercicePost
     }
   })
 
