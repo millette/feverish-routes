@@ -56,7 +56,10 @@ const after = (options, server, next) => {
     path: '/resultats',
     config: {
       plugins: { hapiAuthorization: { roles: ['student'] } },
-      pre: [{ method: utils.getExercices, assign: 'exercices' }],
+      pre: [
+        { method: utils.studentUser, assign: 'student' },
+        { method: utils.getExercices, assign: 'exercices' }
+      ],
       handler: utils.resultats
     }
   })
@@ -67,7 +70,7 @@ const after = (options, server, next) => {
     config: {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
       pre: [{ method: utils.getExercices, assign: 'exercices' }],
-      handler: utils.resultats2
+      handler: utils.resultatsStudent
     }
   })
 
