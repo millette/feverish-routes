@@ -76,6 +76,15 @@ const after = (options, server, next) => {
 
   server.route({
     method: 'GET',
+    path: '/me/{att}',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['student'] } },
+      handler: utils.studentImage
+    }
+  })
+
+  server.route({
+    method: 'GET',
     path: '/rendu/{ex}/{att}',
     handler: utils.rendu
   })
