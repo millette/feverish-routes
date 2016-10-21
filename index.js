@@ -66,20 +66,32 @@ const after = (options, server, next) => {
 
   server.route({
     method: 'GET',
-    path: '/etudiant/{student}',
+    path: '/etudiant/{userid}',
     config: {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
-      pre: [{ method: utils.getExercices, assign: 'exercices' }],
+      pre: [
+        { method: utils.studentUser, assign: 'student' },
+        { method: utils.getExercices, assign: 'exercices' }
+      ],
       handler: utils.resultatsStudent
     }
   })
 
   server.route({
     method: 'GET',
-    path: '/me/{att}',
+    path: '/thumb/{att}',
     config: {
       plugins: { hapiAuthorization: { roles: ['student'] } },
-      handler: utils.studentImage
+      handler: utils.studentThumb
+    }
+  })
+
+  server.route({
+    method: 'GET',
+    path: '/thumb/{userid}/{att}',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      handler: utils.studentThumb
     }
   })
 
@@ -198,7 +210,7 @@ const after = (options, server, next) => {
 
   server.route({
     method: 'GET',
-    path: '/corrections/{ex}/{user}',
+    path: '/corrections/{ex}/{userid}',
     config: {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
       pre: [{ method: utils.getScore, assign: 'score' }],
