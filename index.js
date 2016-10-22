@@ -136,7 +136,10 @@ const after = (options, server, next) => {
     path: '/score/{ex}',
     config: {
       plugins: { hapiAuthorization: { roles: ['student'] } },
-      pre: [{ method: utils.getScore, assign: 'score' }],
+      pre: [
+        { method: utils.studentUser, assign: 'student' },
+        { method: utils.getScore, assign: 'score' }
+      ],
       handler: utils.score
     }
   })
