@@ -240,6 +240,15 @@ const after = (options, server, next) => {
   })
 
   server.route({
+    method: 'POST',
+    path: '/etudiants/new',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      handler: utils.etudiantsNew
+    }
+  })
+
+  server.route({
     method: 'GET',
     path: '/etudiants/lot',
     config: {

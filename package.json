@@ -19,6 +19,7 @@
     "lodash-vision": "0.0.1",
     "nano": "^6.2.0",
     "sharp": "^0.16.1",
+    "uuid": "^2.0.3",
     "vision": "^4.1.0"
   },
   "notHapiPlugins": [
@@ -26,7 +27,8 @@
     "got",
     "lodash-vision",
     "nano",
-    "sharp"
+    "sharp",
+    "uuid"
   ],
   "keywords": [
     "feverish"
