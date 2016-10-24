@@ -19,6 +19,7 @@
     "lodash-vision": "0.0.1",
     "nano": "^6.2.0",
     "sharp": "^0.16.1",
+    "split-lines": "^1.1.0",
     "uuid": "^2.0.3",
     "vision": "^4.1.0"
   },
@@ -28,6 +29,7 @@
     "lodash-vision",
     "nano",
     "sharp",
+    "split-lines",
     "uuid"
   ],
   "keywords": [
