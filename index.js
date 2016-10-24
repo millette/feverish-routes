@@ -216,7 +216,10 @@ const after = (options, server, next) => {
     path: '/corrections/{ex}',
     config: {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
-      pre: [{ method: utils.getScore, assign: 'score' }],
+      pre: [
+        { method: utils.etudiantsPre, assign: 'students' },
+        { method: utils.getScore, assign: 'score' }
+      ],
       handler: utils.corrections
     }
   })
