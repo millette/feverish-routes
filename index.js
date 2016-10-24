@@ -115,6 +115,7 @@ const after = (options, server, next) => {
     path: '/etudiants',
     config: {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      pre: [ { method: utils.etudiantsPre, assign: 'students' } ],
       handler: utils.etudiants
     }
   })
