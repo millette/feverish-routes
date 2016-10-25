@@ -33,11 +33,15 @@ const after = (options, server, next) => {
     }
   })
 
+// step 1
   server.route({
     method: 'GET',
     path: '/exercices',
     config: {
-      pre: [{ method: utils.getExercices, assign: 'exercices' }],
+      pre: [
+        { method: utils.studentUser, assign: 'student' },
+        { method: utils.getExercices, assign: 'exercices' }
+      ],
       handler: utils.exercices
     }
   })
@@ -51,6 +55,7 @@ const after = (options, server, next) => {
     }
   })
 
+  // step 3
   server.route({
     method: 'GET',
     path: '/resultats',
