@@ -120,7 +120,7 @@ const after = (options, server, next) => {
     path: '/etudiants',
     config: {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
-      pre: [ { method: utils.etudiantsPre, assign: 'students' } ],
+      pre: [ { method: utils.etudiantsPre, assign: 'students' } ], // RYM
       handler: utils.etudiants
     }
   })
@@ -222,7 +222,7 @@ const after = (options, server, next) => {
     config: {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
       pre: [
-        { method: utils.etudiantsPre, assign: 'students' },
+        { method: utils.etudiantsPre, assign: 'students' }, // RYM
         { method: utils.getScore, assign: 'score' }
       ],
       handler: utils.corrections
@@ -239,6 +239,20 @@ const after = (options, server, next) => {
         { method: utils.getScore, assign: 'score' }
       ],
       handler: utils.correctionsUser
+    }
+  })
+
+  server.route({
+    method: 'POST',
+    path: '/corrections/{ex}/{userid}',
+    config: {
+      plugins: { hapiAuthorization: { roles: ['teacher'] } },
+      pre: [
+        // { method: utils.studentUser, assign: 'student' },
+        { method: utils.etudiantsPre, assign: 'students' }, // RYM
+        { method: utils.getScore, assign: 'score' }
+      ],
+      handler: utils.correctionsUserPost
     }
   })
 
