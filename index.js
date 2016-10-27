@@ -151,6 +151,23 @@ const after = (options, server, next) => {
   })
 
   server.route({
+    method: 'POST',
+    path: '/score/{ex}',
+    config: {
+      payload: { output: 'stream' },
+      plugins: { hapiAuthorization: { roles: ['student'] } },
+      pre: [{ method: utils.studentUser, assign: 'student' }],
+/*
+      pre: [
+        { method: utils.studentUser, assign: 'student' },
+        { method: utils.getScore, assign: 'score' }
+      ],
+*/
+      handler: utils.scorePost
+    }
+  })
+
+  server.route({
     method: 'GET',
     path: '/new',
     config: {
