@@ -33,7 +33,6 @@ const after = (options, server, next) => {
     }
   })
 
-// step 1
   server.route({
     method: 'GET',
     path: '/exercices',
@@ -55,7 +54,6 @@ const after = (options, server, next) => {
     }
   })
 
-  // step 3
   server.route({
     method: 'GET',
     path: '/resultats',
@@ -154,7 +152,6 @@ const after = (options, server, next) => {
     method: 'POST',
     path: '/score/{ex}',
     config: {
-      // payload: { output: 'stream' },
       plugins: { hapiAuthorization: { roles: ['student'] } },
       pre: [
         { method: utils.studentUser, assign: 'student' },
@@ -262,8 +259,7 @@ const after = (options, server, next) => {
     config: {
       plugins: { hapiAuthorization: { roles: ['teacher'] } },
       pre: [
-        // { method: utils.studentUser, assign: 'student' },
-        { method: utils.etudiantsPre, assign: 'students' }, // RYM
+        { method: utils.etudiantsPre, assign: 'students' },
         { method: utils.getScore, assign: 'score' }
       ],
       handler: utils.correctionsUserPost
