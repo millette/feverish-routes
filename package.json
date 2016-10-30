@@ -18,7 +18,7 @@
     "hapi-context-credentials": "^2.0.0",
     "lodash-vision": "0.0.1",
     "nano": "^6.2.0",
-    "sharp": "^0.16.1",
+    "sharp": "^0.16.2",
     "split-lines": "^1.1.0",
     "uuid": "^2.0.3",
     "vision": "^4.1.0"
