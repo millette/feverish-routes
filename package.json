@@ -1,6 +1,6 @@
 {
   "name": "feverish-routes",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Feverish routes",
   "main": "index.js",
   "scripts": {
